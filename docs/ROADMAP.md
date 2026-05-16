@@ -6,7 +6,6 @@ Este documento é a versão local-canônica do roadmap. A fonte original está e
 
 Objetivo: repo no ar com retrieval dense-only ponta a ponta sobre 50 documentos.
 
-- [x] Decidir nome do repo (open-energy-rag)
 - [x] Scaffold da estrutura backend / evals / data / docs
 - [x] Docker compose com Qdrant
 - [x] Backend skeleton: FastAPI, pydantic-settings, LLM provider abstraction
