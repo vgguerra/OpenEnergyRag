@@ -1,0 +1,16 @@
+# Curated eval set: 30 to 50 queries with ground-truth (document + section).
+# Quality > quantity. Each entry must be a question a real user would ask,
+# not a gotcha. Add the source document and article that contains the answer,
+# not the answer text (LLM generates the text, the source is the truth).
+#
+# Schema:
+#   - id: short unique slug
+#     query: pergunta como o usuário escreveria
+#     gold:
+#       - source: arquivo PDF de referência (sem caminho)
+#         artigo: número ou identificador do artigo
+#     tags: [definicoes | requisitos | prazos | multas | excecoes | tarifas]
+#
+# Examples below are placeholders. Replace with real curated questions.
+
+queries: []
