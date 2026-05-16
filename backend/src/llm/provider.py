@@ -85,8 +85,13 @@ def build_provider() -> LLMProviderProtocol:
             model=model,
         )
     if provider == "gemini":
-        # Gemini uses a different REST shape; implement when first needed.
-        raise NotImplementedError("Gemini provider not implemented yet.")
+        # Google publishes an OpenAI-compatible endpoint for the Gemini API:
+        # https://ai.google.dev/gemini-api/docs/openai
+        return OpenAICompatibleProvider(
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai",
+            api_key=settings.GEMINI_API_KEY,
+            model=model,
+        )
     if provider == "ollama":
         return OpenAICompatibleProvider(
             base_url=f"{settings.OLLAMA_HOST}/v1",
