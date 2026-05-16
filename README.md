@@ -16,7 +16,7 @@ Assistente RAG sobre normativos do setor elétrico brasileiro (ANEEL, ONS, MME).
 |---|---|
 | Backend | FastAPI + async |
 | Vector DB | Qdrant (hybrid search) |
-| Embeddings | BGE-M3 via fastembed |
+| Embeddings | `intfloat/multilingual-e5-large` via fastembed (BGE-M3 via outra rota em Phase 1) |
 | Extração de PDF | docling |
 | LLM | Groq (Llama 3.3 70B) por default. OpenRouter, Gemini, OpenAI e Ollama configuráveis |
 | Observability | Langfuse (opcional) |

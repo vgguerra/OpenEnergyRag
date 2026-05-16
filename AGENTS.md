@@ -13,7 +13,7 @@ Documento canônico do projeto: [README.md](./README.md). Roadmap detalhado: [do
 - Python 3.12, gerenciado com [uv](https://docs.astral.sh/uv/) (não use pip).
 - Backend: FastAPI + async, pydantic-settings para config.
 - Vector DB: Qdrant via docker-compose.
-- Embeddings: BGE-M3 (fastembed).
+- Embeddings: `intfloat/multilingual-e5-large` via fastembed (default). BGE-M3 não está no `TextEmbedding` do fastembed; se for testado em Phase 1, será via outra biblioteca.
 - Extração: docling.
 - LLM: provider abstraction (Groq default, OpenRouter / Gemini / OpenAI / Ollama configuráveis).
 

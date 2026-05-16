@@ -30,7 +30,7 @@ class _Settings(BaseSettings):
     QDRANT_API_KEY: str = ""
     QDRANT_COLLECTION: str = "open-energy"
 
-    EMBEDDING_MODEL: str = "BAAI/bge-m3"
+    EMBEDDING_MODEL: str = "intfloat/multilingual-e5-large"
     EMBEDDING_DEVICE: str = "cpu"
 
     LANGFUSE_PUBLIC_KEY: str = ""
