@@ -23,6 +23,11 @@ _PASSAGE_PREFIX = "passage: "
 
 _SPARSE_MODEL = "Qdrant/bm25"
 
+# fastembed's default (256) blows past 9 GB of RSS on CPU with e5-large on
+# documents the size of the bigger PRODIST modules and gets OOM-killed.
+# 16 keeps peak RSS under ~3 GB without a noticeable wall-clock cost.
+_DENSE_BATCH_SIZE = 16
+
 
 @dataclass(frozen=True)
 class SparseVec:
@@ -49,7 +54,10 @@ def embed_query(text: str) -> list[float]:
 def embed_batch(texts: list[str]) -> list[list[float]]:
     embedder = get_dense_embedder()
     prefixed = [_PASSAGE_PREFIX + t for t in texts]
-    return [v.tolist() for v in embedder.embed(prefixed)]
+    return [
+        v.tolist()
+        for v in embedder.embed(prefixed, batch_size=_DENSE_BATCH_SIZE, parallel=1)
+    ]
 
 
 def sparse_embed_query(text: str) -> SparseVec:
