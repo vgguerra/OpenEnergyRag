@@ -50,10 +50,27 @@ SYSTEM_PROMPT = """Você é um assistente especializado em regulação do setor 
 
 Regras inegociáveis:
 1. Responda apenas com base nos trechos fornecidos abaixo.
-2. Cite a fonte (documento e artigo) em cada afirmação, no formato [doc=..., art=...].
+2. Cite a fonte ao final de cada afirmação, exatamente como vem no cabeçalho do trecho, entre colchetes.
 3. Se a informação não estiver nos trechos, responda exatamente: "Não encontrei isso nos documentos indexados."
 4. Nunca opine sobre interpretação regulatória. Apresente o que está escrito.
 """
+
+
+def _format_citation(metadata: dict[str, Any]) -> str:
+    parts: list[str] = []
+    source = metadata.get("source")
+    if source:
+        parts.append(f"doc={source}")
+    section = metadata.get("section")
+    if section:
+        parts.append(f"seção={section}")
+    subsection = metadata.get("subsection")
+    if subsection:
+        parts.append(f"subseção={subsection}")
+    item = metadata.get("item")
+    if item:
+        parts.append(f"item={item}")
+    return "[" + ", ".join(parts) + "]" if parts else "[?]"
 
 
 @app.get("/health")
@@ -90,8 +107,7 @@ async def ask(req: AskRequest) -> AskResponse:
         )
 
     context_block = "\n\n".join(
-        f"[doc={h.metadata.get('source', '?')}, art={h.metadata.get('artigo', '?')}]\n{h.text}"
-        for h in hits
+        f"{_format_citation(h.metadata)}\n{h.text}" for h in hits
     )
     user_message = f"Pergunta: {req.query}\n\nTrechos disponíveis:\n{context_block}"
 
