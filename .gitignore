@@ -12,7 +12,6 @@ __pycache__/
 .coverage
 htmlcov/
 
-scripts/
 node_modules/
 .next/
 out/

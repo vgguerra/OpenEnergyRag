@@ -1,18 +1,19 @@
-"""Embedding model wrapper.
+"""Embedding wrappers.
 
-Phase 0: dense embeddings via multilingual-e5-large (or whatever
-EMBEDDING_MODEL points to) through fastembed.
+Phase 1: dense + sparse embeddings for hybrid retrieval.
 
-e5 models are trained with asymmetric prefixes: "query: " for the user
-question and "passage: " for the indexed text. Skipping the prefixes
-silently degrades recall; we always apply them here so callers can stay
-prefix-agnostic.
+- Dense: multilingual-e5-large via fastembed. e5 is trained with asymmetric
+  prefixes ("query: " / "passage: "); skipping them silently degrades recall,
+  so we always apply them here.
+- Sparse: BM25 via Qdrant/bm25 (also fastembed). BM25 is language-agnostic and
+  exposes `passage_embed` / `query_embed` with the right weighting per side.
 """
 from __future__ import annotations
 
+from dataclasses import dataclass
 from functools import lru_cache
 
-from fastembed import TextEmbedding
+from fastembed import SparseTextEmbedding, TextEmbedding
 
 from src.config import settings
 
@@ -20,10 +21,23 @@ from src.config import settings
 _QUERY_PREFIX = "query: "
 _PASSAGE_PREFIX = "passage: "
 
+_SPARSE_MODEL = "Qdrant/bm25"
+
+
+@dataclass(frozen=True)
+class SparseVec:
+    indices: list[int]
+    values: list[float]
+
 
 @lru_cache(maxsize=1)
 def get_dense_embedder() -> TextEmbedding:
     return TextEmbedding(model_name=settings.EMBEDDING_MODEL)
+
+
+@lru_cache(maxsize=1)
+def get_sparse_embedder() -> SparseTextEmbedding:
+    return SparseTextEmbedding(model_name=_SPARSE_MODEL)
 
 
 def embed_query(text: str) -> list[float]:
@@ -36,3 +50,17 @@ def embed_batch(texts: list[str]) -> list[list[float]]:
     embedder = get_dense_embedder()
     prefixed = [_PASSAGE_PREFIX + t for t in texts]
     return [v.tolist() for v in embedder.embed(prefixed)]
+
+
+def sparse_embed_query(text: str) -> SparseVec:
+    embedder = get_sparse_embedder()
+    [v] = list(embedder.query_embed([text]))
+    return SparseVec(indices=v.indices.tolist(), values=v.values.tolist())
+
+
+def sparse_embed_batch(texts: list[str]) -> list[SparseVec]:
+    embedder = get_sparse_embedder()
+    return [
+        SparseVec(indices=v.indices.tolist(), values=v.values.tolist())
+        for v in embedder.passage_embed(texts)
+    ]

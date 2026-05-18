@@ -10,7 +10,11 @@ from pathlib import Path
 
 from src.config import settings
 from src.ingestion.chunker import chunk_document
-from src.retrieval.embeddings import embed_batch, get_dense_embedder
+from src.retrieval.embeddings import (
+    embed_batch,
+    get_dense_embedder,
+    sparse_embed_batch,
+)
 from src.retrieval.qdrant import ensure_collection, upsert_chunks
 
 
@@ -69,13 +73,14 @@ def ingest_pdf(pdf_path: Path, *, processed_dir: Path | None = None) -> Ingestio
     ensure_collection(_vector_size())
 
     texts = [c.text for c in chunks]
-    vectors = embed_batch(texts)
+    dense = embed_batch(texts)
+    sparse = sparse_embed_batch(texts)
     payloads = [
         {"text": c.text, "metadata": c.metadata}
         for c in chunks
     ]
 
-    written = upsert_chunks(vectors, payloads)
+    written = upsert_chunks(dense, sparse, payloads)
 
     return IngestionReport(
         pdf=pdf_path,

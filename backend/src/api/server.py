@@ -7,15 +7,15 @@ Phase 0 surface:
 """
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from src.config import settings
 from src.llm.provider import Message, llm
-from src.retrieval.embeddings import embed_query
-from src.retrieval.qdrant import search_dense
+from src.retrieval.embeddings import embed_query, sparse_embed_query
+from src.retrieval.qdrant import search_dense, search_hybrid
 
 app = FastAPI(
     title="open-energy-rag",
@@ -24,9 +24,13 @@ app = FastAPI(
 )
 
 
+RetrievalMode = Literal["hybrid", "dense"]
+
+
 class SearchRequest(BaseModel):
     query: str = Field(..., min_length=1)
     top_k: int = Field(5, ge=1, le=20)
+    mode: RetrievalMode = "hybrid"
 
 
 class SearchHit(BaseModel):
@@ -39,6 +43,7 @@ class SearchHit(BaseModel):
 class AskRequest(BaseModel):
     query: str = Field(..., min_length=1)
     top_k: int = Field(5, ge=1, le=20)
+    mode: RetrievalMode = "hybrid"
 
 
 class AskResponse(BaseModel):
@@ -81,8 +86,12 @@ async def health() -> dict[str, str]:
 @app.post("/search", response_model=list[SearchHit])
 async def search(req: SearchRequest) -> list[SearchHit]:
     try:
-        query_vector = embed_query(req.query)
-        hits = search_dense(query_vector, top_k=req.top_k)
+        dense = embed_query(req.query)
+        if req.mode == "hybrid":
+            sparse = sparse_embed_query(req.query)
+            hits = search_hybrid(dense, sparse, top_k=req.top_k)
+        else:
+            hits = search_dense(dense, top_k=req.top_k)
     except Exception as exc:
         raise HTTPException(status_code=503, detail=f"Retrieval failure: {exc}") from exc
 
@@ -99,7 +108,7 @@ async def search(req: SearchRequest) -> list[SearchHit]:
 
 @app.post("/ask", response_model=AskResponse)
 async def ask(req: AskRequest) -> AskResponse:
-    hits = await search(SearchRequest(query=req.query, top_k=req.top_k))
+    hits = await search(SearchRequest(query=req.query, top_k=req.top_k, mode=req.mode))
     if not hits:
         return AskResponse(
             answer="Não encontrei isso nos documentos indexados.",
