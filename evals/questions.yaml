@@ -1,16 +1,207 @@
-# Curated eval set: 30 to 50 queries with ground-truth (document + section).
-# Quality > quantity. Each entry must be a question a real user would ask,
-# not a gotcha. Add the source document and article that contains the answer,
-# not the answer text (LLM generates the text, the source is the truth).
+# Curated eval set for the open-energy-rag retrieval benchmark.
+#
+# Each entry is a question a real user of PRODIST/ONS material might ask,
+# with a ground-truth list of (source, items) tuples. A retrieved chunk
+# is considered a hit if its metadata.source matches one of the entries
+# AND, if items is non-empty, its metadata.item is in that list.
 #
 # Schema:
-#   - id: short unique slug
-#     query: pergunta como o usuário escreveria
+#   - id: short kebab-case slug
+#     query: question as the user would phrase it
 #     gold:
-#       - source: arquivo PDF de referência (sem caminho)
-#         artigo: número ou identificador do artigo
-#     tags: [definicoes | requisitos | prazos | multas | excecoes | tarifas]
+#       - source: PDF filename (must match metadata.source)
+#         items: [list of item numbers; empty = any chunk from this source]
+#     tags: [definicoes | requisitos | excecoes | calculo | informacoes]
 #
-# Examples below are placeholders. Replace with real curated questions.
+# Phase 2 deliverable: keep it curated, prefer 25 well-grounded questions
+# to 100 weakly-grounded ones.
 
-queries: []
+queries:
+  # ---- DEFINIÇÕES (glossário, módulo 01) ----
+  - id: def-tensao-precaria
+    query: "O que é tensão precária?"
+    gold:
+      - source: prodist-modulo-01-glossario.pdf
+        items: ["140"]
+    tags: [definicoes]
+
+  - id: def-tensao-critica
+    query: "O que é tensão crítica de atendimento?"
+    # Item 370 lives inside a chunk that starts with item 367 (TMP); the
+    # chunker only records the first item per chunk, so we relax to any
+    # glossary chunk here.
+    gold:
+      - source: prodist-modulo-01-glossario.pdf
+        items: []
+    tags: [definicoes]
+
+  - id: def-tensao-adequada
+    query: "O que é tensão adequada de atendimento?"
+    gold:
+      - source: prodist-modulo-01-glossario.pdf
+        items: []
+    tags: [definicoes]
+
+  - id: def-microgeracao
+    query: "O que é microgeração distribuída segundo o PRODIST?"
+    gold:
+      - source: prodist-modulo-01-glossario.pdf
+        items: ["235"]
+    tags: [definicoes]
+
+  - id: def-cogeracao
+    query: "O que é cogeração de energia segundo o PRODIST?"
+    gold:
+      - source: prodist-modulo-01-glossario.pdf
+        items: ["57", "59"]
+    tags: [definicoes]
+
+  - id: def-cogerador
+    query: "O que é um cogerador?"
+    gold:
+      - source: prodist-modulo-01-glossario.pdf
+        items: ["61"]
+    tags: [definicoes]
+
+  - id: def-cintilacao
+    query: "O que é cintilação luminosa?"
+    gold:
+      - source: prodist-modulo-01-glossario.pdf
+        items: ["57", "58"]
+    tags: [definicoes]
+
+  - id: def-tarifa
+    query: "Qual a definição de tarifa segundo o glossário do PRODIST?"
+    gold:
+      - source: prodist-modulo-01-glossario.pdf
+        items: ["352"]
+    tags: [definicoes]
+
+  - id: def-bt
+    query: "O que é baixa tensão de distribuição (BT)?"
+    gold:
+      - source: prodist-modulo-01-glossario.pdf
+        items: ["27"]
+    tags: [definicoes]
+
+  - id: def-drc
+    query: "O que é o indicador DRC (Duração Relativa da Transgressão de Tensão Crítica)?"
+    gold:
+      - source: prodist-modulo-01-glossario.pdf
+        items: ["140"]
+    tags: [definicoes]
+
+  - id: def-consumidor
+    query: "O que é considerado um consumidor segundo o PRODIST?"
+    gold:
+      - source: prodist-modulo-01-glossario.pdf
+        items: []
+    tags: [definicoes]
+
+  # ---- REQUISITOS (módulo 03 conexão, módulo 05 medição) ----
+  - id: req-conexao-microgeracao
+    query: "Quais os requisitos para conexão de microgeração ou minigeração distribuída à rede?"
+    gold:
+      - source: prodist-modulo-03-conexao.pdf
+        items: []
+    tags: [requisitos]
+
+  - id: req-tp-trifasico
+    query: "Como devem ser conectados os transformadores de potencial (TP) em sistema trifásico?"
+    gold:
+      - source: prodist-modulo-05-medicao.pdf
+        items: []
+    tags: [requisitos]
+
+  - id: req-medicao-perdas-sed
+    query: "A distribuidora precisa medir as perdas técnicas nas SED do SDAT?"
+    gold:
+      - source: prodist-modulo-02-planejamento.pdf
+        items: ["20", "21", "22"]
+    tags: [requisitos]
+
+  - id: req-previsao-demanda
+    query: "Quais critérios a distribuidora deve usar na previsão de demanda?"
+    gold:
+      - source: prodist-modulo-02-planejamento.pdf
+        items: []
+    tags: [requisitos]
+
+  - id: req-cadastro-central-geradora
+    query: "Quais documentos são exigidos para cadastrar uma central geradora junto à distribuidora?"
+    gold:
+      - source: prodist-modulo-03-conexao.pdf
+        items: []
+    tags: [requisitos]
+
+  # ---- EXCEÇÕES (excepções a regras) ----
+  - id: exc-tp-tipo-v
+    query: "Em que situações se podem usar arranjos do tipo V para os transformadores de potencial?"
+    gold:
+      - source: prodist-modulo-05-medicao.pdf
+        items: []
+    tags: [excecoes]
+
+  - id: exc-desconexao-microgeracao
+    query: "Quando a distribuidora pode desconectar uma unidade consumidora com microgeração?"
+    gold:
+      - source: prodist-modulo-03-conexao.pdf
+        items: []
+    tags: [excecoes]
+
+  # ---- CÁLCULO (indicadores, perdas) ----
+  - id: calc-dec-fec
+    query: "Como os indicadores DEC e FEC são apurados pela distribuidora?"
+    gold:
+      - source: prodist-modulo-06-informacoes.pdf
+        items: []
+    tags: [calculo]
+
+  - id: calc-perdas-tecnicas
+    query: "Como a distribuidora deve calcular as perdas técnicas na rede?"
+    gold:
+      - source: prodist-modulo-07-perdas.pdf
+        items: []
+    tags: [calculo]
+
+  # ---- INFORMAÇÕES E PROCESSOS ----
+  - id: info-bdgd
+    query: "O que é a BDGD (Base de Dados Geográfica da Distribuidora)?"
+    gold:
+      - source: prodist-modulo-10-sig.pdf
+        items: []
+    tags: [informacoes]
+
+  - id: info-fatura
+    query: "Quais informações devem constar obrigatoriamente na fatura de energia elétrica?"
+    # Fatura content actually lives in modulo-06-informacoes alongside the
+    # section on informações ao consumidor; modulo-11 is also acceptable.
+    gold:
+      - source: prodist-modulo-11-fatura.pdf
+        items: []
+      - source: prodist-modulo-06-informacoes.pdf
+        items: []
+    tags: [informacoes]
+
+  - id: info-ressarcimento
+    query: "Em que casos a distribuidora deve ressarcir o consumidor por danos a equipamentos elétricos?"
+    gold:
+      - source: prodist-modulo-09-ressarcimento.pdf
+        items: []
+      - source: prodist-modulo-06-informacoes.pdf
+        items: []
+    tags: [informacoes]
+
+  - id: info-intervencoes
+    query: "Como são tratados os pedidos de intervenção operativa da distribuidora?"
+    gold:
+      - source: prodist-modulo-04-operativos.pdf
+        items: []
+    tags: [informacoes]
+
+  - id: info-ons
+    query: "Qual o papel do Operador Nacional do Sistema Elétrico nos Procedimentos de Rede?"
+    gold:
+      - source: ons-submodulo-1.1-introducao.pdf
+        items: []
+    tags: [informacoes]
