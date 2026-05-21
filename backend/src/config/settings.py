@@ -44,5 +44,7 @@ class _Settings(BaseSettings):
     PORT: int = 8000
     RELOAD: bool = True
 
+    CORS_ALLOWED_ORIGINS: str = "http://localhost:3000"
+
 
 settings = _Settings()

@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from src.config import settings
@@ -21,6 +22,19 @@ app = FastAPI(
     title="open-energy-rag",
     description="RAG over Brazilian electricity-sector normatives (ANEEL, ONS, MME).",
     version="0.1.0",
+)
+
+_allowed_origins = [
+    origin.strip()
+    for origin in settings.CORS_ALLOWED_ORIGINS.split(",")
+    if origin.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_allowed_origins or ["http://localhost:3000"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 
