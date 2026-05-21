@@ -93,7 +93,7 @@ def _format_markdown(
         return f"{sign}{diff:.3f}"
 
     lines: list[str] = [
-        f"# Retrieval benchmark — {timestamp}",
+        f"# Retrieval benchmark - {timestamp}",
         "",
         (
             f"Eval set: {len(dense_samples)} curated queries. Both modes share "

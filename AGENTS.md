@@ -34,7 +34,7 @@ Documento canônico do projeto: [README.md](./README.md). Roadmap detalhado: [do
 - Sem LangChain. RAG direto e legível.
 - Commits: lowercase imperative, conventional (`feat:`, `fix:`, `docs:`, `refactor:`).
 - Sem `Co-Authored-By` em commits.
-- Sem em-dashes ("—") em texto que vai para o repo.
+- Sem em-dashes no texto que vai para o repo.
 - Variáveis de ambiente: declarar em `src/config/settings.py`, nunca `os.getenv` no código.
 - Estrutura de chunks: levar metadata (`source`, `artigo`, `capitulo`, `page_start`) até a citação na resposta.
 

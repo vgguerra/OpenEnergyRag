@@ -1,6 +1,6 @@
 # Roadmap
 
-Este documento é a versão local-canônica do roadmap. A fonte original está em Notion ("Open Energy RAG — Roadmap"). Mantenha os dois em sincronia ao fechar fases.
+Este documento é a versão local-canônica do roadmap. A fonte original está em Notion ("Open Energy RAG: Roadmap"). Mantenha os dois em sincronia ao fechar fases.
 
 ## Fase 0: setup e baseline
 
