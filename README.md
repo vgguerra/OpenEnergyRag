@@ -101,6 +101,19 @@ uv run python -m src.eval.runner
 # report at evals/results/<timestamp>.md and evals/results/latest.md
 ```
 
+### 7. Frontend (optional)
+
+A Next.js 15 single-page UI lives under [frontend/](./frontend/). Citation-first chat, dark/light aware, calls the backend through a server-side proxy so the API URL stays out of the browser bundle.
+
+```bash
+cd frontend
+pnpm install            # or npm install
+cp .env.example .env.local   # BACKEND_URL=http://localhost:8000
+pnpm dev                # http://localhost:3000
+```
+
+The backend already serves CORS for `http://localhost:3000` by default (configurable via `CORS_ALLOWED_ORIGINS`).
+
 ## Layout
 
 ```
@@ -115,6 +128,12 @@ open-energy-rag/
 │   │   └── eval/         metrics (recall@k, MRR) + benchmark runner
 │   ├── pyproject.toml
 │   └── run.py
+├── frontend/
+│   ├── src/
+│   │   ├── app/          Next.js App Router (page + /api/ask proxy)
+│   │   ├── components/   Header, QuestionInput, AnswerCard, SourceCard, ...
+│   │   └── lib/          types and fetch wrapper
+│   └── package.json
 ├── evals/
 │   ├── questions.yaml    curated eval set (25 queries)
 │   └── results/          generated benchmark reports
