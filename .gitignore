@@ -22,6 +22,8 @@ data/processed/
 qdrant_storage/
 langfuse_data/
 
+scripts/
+
 .DS_Store
 .vscode/
 .idea/

@@ -56,7 +56,7 @@ Available at `http://localhost:6333`.
 ```bash
 cd backend
 uv sync
-cp ../.env.example ../.env
+cp .env.example .env
 # fill in GROQ_API_KEY (or another provider) in .env
 
 uv run python run.py
@@ -127,22 +127,22 @@ open-energy-rag/
 │   │   ├── llm/          provider abstraction (Groq / OpenRouter / Gemini / OpenAI / Ollama)
 │   │   └── eval/         metrics (recall@k, MRR) + benchmark runner
 │   ├── pyproject.toml
-│   └── run.py
+│   ├── run.py
+│   └── .env.example
 ├── frontend/
 │   ├── src/
 │   │   ├── app/          Next.js App Router (page + /api/ask proxy)
 │   │   ├── components/   Header, QuestionInput, AnswerCard, SourceCard, ...
 │   │   └── lib/          types and fetch wrapper
-│   └── package.json
+│   ├── package.json
+│   └── .env.example
 ├── evals/
 │   ├── questions.yaml    curated eval set (25 queries)
 │   └── results/          generated benchmark reports
-├── scripts/              smoke tests (docling, chunker, retrieval compare)
 ├── data/raw/             [gitignored] raw PDFs
 ├── data/processed/       [gitignored] markdowns produced by docling
 ├── docs/                 ROADMAP
-├── docker-compose.yml    Qdrant
-└── .env.example
+└── docker-compose.yml    Qdrant
 ```
 
 ## Known limitations
