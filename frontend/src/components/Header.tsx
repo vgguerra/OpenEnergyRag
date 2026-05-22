@@ -15,15 +15,23 @@ export function Header() {
             </p>
           </div>
         </div>
-        <a
-          href="https://github.com/vgguerra/OpenEnergyRag"
-          target="_blank"
-          rel="noreferrer noopener"
-          className="flex items-center gap-1.5 rounded-md border border-[color:var(--color-border)] px-2.5 py-1.5 text-xs font-medium text-[color:var(--color-text-muted)] transition hover:border-[color:var(--color-accent)] hover:text-[color:var(--color-text)]"
-        >
-          <Github size={14} />
-          GitHub
-        </a>
+        <div className="flex items-center gap-2">
+          <span
+            title="Eval: 25 curated queries · hybrid retrieval (dense e5-large + sparse BM25, RRF)"
+            className="hidden items-center rounded-md border border-[color:var(--color-border)] px-2.5 py-1.5 text-[11px] font-medium text-[color:var(--color-text-muted)] sm:inline-flex"
+          >
+            recall@10 = 1.00
+          </span>
+          <a
+            href="https://github.com/vgguerra/OpenEnergyRag"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="flex items-center gap-1.5 rounded-md border border-[color:var(--color-border)] px-2.5 py-1.5 text-xs font-medium text-[color:var(--color-text-muted)] transition hover:border-[color:var(--color-accent)] hover:text-[color:var(--color-text)]"
+          >
+            <Github size={14} />
+            GitHub
+          </a>
+        </div>
       </div>
     </header>
   );
