@@ -1,5 +1,7 @@
 # open-energy-rag
 
+[![CI](https://github.com/vgguerra/OpenEnergyRag/actions/workflows/ci.yml/badge.svg)](https://github.com/vgguerra/OpenEnergyRag/actions/workflows/ci.yml)
+
 RAG assistant for Brazilian electric sector regulations (PRODIST/ANEEL, ONS, MME). Every answer cites document, section and item. 100% public dataset.
 
 > Status: Phase 2 closed. 12/12 PDFs ingested (1065 chunks), hybrid dense + sparse retrieval (RRF) enabled, benchmark published at [evals/results/latest.md](./evals/results/latest.md). Full roadmap in [docs/ROADMAP.md](./docs/ROADMAP.md).
