@@ -7,7 +7,7 @@ sdk: docker
 app_port: 8000
 pinned: false
 license: mit
-short_description: RAG over Brazilian electricity-sector normatives (PRODIST/ANEEL/ONS)
+short_description: Citation-first RAG over PRODIST/ANEEL/ONS regulations
 ---
 
 # Open Energy RAG API
