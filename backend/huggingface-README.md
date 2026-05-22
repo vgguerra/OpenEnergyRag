@@ -10,15 +10,15 @@ license: mit
 short_description: RAG over Brazilian electricity-sector normatives (PRODIST/ANEEL/ONS)
 ---
 
-# Open Energy RAG — API
+# Open Energy RAG API
 
 FastAPI backend for the [Open Energy RAG](https://github.com/vgguerra/OpenEnergyRag) project. Citation-first retrieval over Brazilian electricity-sector regulations using hybrid dense (multilingual-e5-large) + sparse (BM25) search with reciprocal rank fusion.
 
 ## Endpoints
 
-- `GET /health` — liveness probe with provider/model info
-- `POST /search` — top-k chunk retrieval, no generation
-- `POST /ask` — retrieval + LLM-generated answer with citations
+- `GET /health`: liveness probe with provider/model info
+- `POST /search`: top-k chunk retrieval, no generation
+- `POST /ask`: retrieval + LLM-generated answer with citations
 
 ## Required secrets
 

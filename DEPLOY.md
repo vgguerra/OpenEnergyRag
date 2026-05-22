@@ -1,6 +1,6 @@
 # Deploy
 
-Production stack — all free tier, **no credit card required**:
+Production stack, all free tier, **no credit card required**:
 
 - **Frontend (Next.js)** → Vercel
 - **Backend (FastAPI)** → Hugging Face Spaces (Docker, CPU basic, 2 vCPU / 16 GB RAM)
