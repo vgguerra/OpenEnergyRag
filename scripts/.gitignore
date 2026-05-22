@@ -1,0 +1,4 @@
+# Local utilities (smoke tests, retrieval comparisons). Ignore contents,
+# keep this file so the folder exists in the repo.
+*
+!.gitignore

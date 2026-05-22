@@ -1,0 +1,4 @@
+# PDFs raw and docling-converted markdown caches. Heavy and reproducible
+# from the public sources in scripts/download_pilot.sh; not versioned.
+raw/
+processed/

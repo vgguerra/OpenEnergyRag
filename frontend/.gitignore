@@ -1,11 +1,17 @@
+# Node / Next.js
 node_modules/
 .next/
 out/
 *.tsbuildinfo
 next-env.d.ts
 
+# Local secrets / overrides
 .env
 .env.local
 .env.*.local
 
+# Vercel CLI local config
+.vercel/
+
+# OS junk
 .DS_Store
