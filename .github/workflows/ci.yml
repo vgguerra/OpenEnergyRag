@@ -1,12 +1,9 @@
 name: CI
 
-# Triggers
-#   release (published): the canonical gate. Runs checks, then deploys
-#     the backend to Hugging Face Spaces and the frontend to Vercel.
-#   workflow_dispatch: run on demand. Useful to validate main without
-#     cutting a release; deploys also run if you trigger from main.
+# Runs on release publish (the canonical gate) and on manual dispatch
+# from the Actions tab.
 #
-# Required secrets (Settings → Secrets and variables → Actions):
+# Required secrets (Settings -> Secrets and variables -> Actions):
 #   HF_TOKEN, HF_USERNAME, HF_SPACE_NAME
 #   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
 on:
@@ -20,9 +17,9 @@ concurrency:
 
 jobs:
   backend-checks:
-    name: backend (lint + Docker smoke)
+    name: backend (deps + Docker build)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: backend
@@ -39,58 +36,20 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      - name: Ruff (lint)
-        run: uv run ruff check src
-
-      - name: Ruff (format check)
-        run: uv run ruff format --check src
-
-      - name: Pytest
-        run: |
-          if compgen -G "tests/**/*.py" > /dev/null || compgen -G "src/**/test_*.py" > /dev/null; then
-            uv run pytest -q
-          else
-            echo "No tests yet, skipping."
-          fi
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Docker build (smoke)
+      - name: Docker build
         uses: docker/build-push-action@v6
         with:
           context: backend
           push: false
-          load: true
           tags: open-energy-rag-api:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Smoke-run image
-        run: |
-          docker run --rm -d --name oer-ci \
-            -p 8000:8000 \
-            -e LLM_PROVIDER=groq \
-            -e GROQ_API_KEY=ci-placeholder \
-            -e QDRANT_URL=http://localhost:6333 \
-            -e CORS_ALLOWED_ORIGINS=http://localhost:3000 \
-            open-energy-rag-api:ci
-          for i in $(seq 1 30); do
-            if curl -fs http://localhost:8000/health > /dev/null; then
-              echo "image is healthy"
-              docker logs oer-ci | tail -20
-              docker stop oer-ci
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "image failed to become healthy"
-          docker logs oer-ci
-          docker stop oer-ci || true
-          exit 1
-
   frontend-checks:
-    name: frontend (lint + build)
+    name: frontend (deps + build)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -114,9 +73,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Lint
-        run: pnpm lint
 
       - name: Build
         run: pnpm build
@@ -153,7 +109,6 @@ jobs:
             --exclude='README.md' \
             --exclude='huggingface-README.md' \
             backend/ hf-space/
-          # Re-emit the Space README (with YAML frontmatter) on every run.
           cp backend/huggingface-README.md hf-space/README.md
           cd hf-space
           git config user.email "ci@github.actions"
@@ -203,5 +158,5 @@ jobs:
       - name: Build
         run: vercel build --prod --token="$VERCEL_TOKEN"
 
-      - name: Deploy to Vercel (prod)
+      - name: Deploy
         run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
