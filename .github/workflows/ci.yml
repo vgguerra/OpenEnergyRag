@@ -1,27 +1,26 @@
 name: CI
 
 # Triggers
-#   release: gate every published release on a green build.
-#   workflow_dispatch: run on demand from the Actions tab without
-#     having to cut a release (useful for sanity-checking main).
+#   release (published): the canonical gate. Runs checks, then deploys
+#     the backend to Hugging Face Spaces and the frontend to Vercel.
+#   workflow_dispatch: run on demand. Useful to validate main without
+#     cutting a release; deploys also run if you trigger from main.
 #
-#   Want feedback on every push or PR? Uncomment the blocks below.
+# Required secrets (Settings → Secrets and variables → Actions):
+#   HF_TOKEN, HF_USERNAME, HF_SPACE_NAME
+#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
 on:
   release:
     types: [published]
   workflow_dispatch:
-  # push:
-  #   branches: [main]
-  # pull_request:
-  #   branches: [main]
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  backend:
-    name: backend (lint + Docker build)
+  backend-checks:
+    name: backend (lint + Docker smoke)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -76,7 +75,6 @@ jobs:
             -e QDRANT_URL=http://localhost:6333 \
             -e CORS_ALLOWED_ORIGINS=http://localhost:3000 \
             open-energy-rag-api:ci
-          # /health does not touch Qdrant or the LLM and must come up fast.
           for i in $(seq 1 30); do
             if curl -fs http://localhost:8000/health > /dev/null; then
               echo "image is healthy"
@@ -91,7 +89,7 @@ jobs:
           docker stop oer-ci || true
           exit 1
 
-  frontend:
+  frontend-checks:
     name: frontend (lint + build)
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -123,5 +121,87 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          # Build-time only; the actual prod URL is set by Vercel.
           BACKEND_URL: https://example.invalid
+
+  deploy-backend:
+    name: deploy backend to HF Spaces
+    needs: backend-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: ${{ secrets.HF_USERNAME }}
+          HF_SPACE_NAME: ${{ secrets.HF_SPACE_NAME }}
+          TAG: ${{ github.event.release.tag_name || github.sha }}
+        run: |
+          set -euo pipefail
+          REMOTE="https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE_NAME}.git"
+          git clone --depth=1 "$REMOTE" hf-space
+          rsync -av --delete \
+            --exclude='.git' \
+            --exclude='__pycache__' \
+            --exclude='.venv' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='qdrant_storage' \
+            --exclude='.fastembed_cache' \
+            --exclude='.hf_cache' \
+            --exclude='README.md' \
+            --exclude='huggingface-README.md' \
+            backend/ hf-space/
+          # Re-emit the Space README (with YAML frontmatter) on every run.
+          cp backend/huggingface-README.md hf-space/README.md
+          cd hf-space
+          git config user.email "ci@github.actions"
+          git config user.name "CI"
+          if git diff --quiet && git diff --quiet --cached; then
+            echo "Nothing to deploy."
+            exit 0
+          fi
+          git add .
+          git commit -q -m "deploy: ${TAG}"
+          git push origin HEAD:main
+
+  deploy-frontend:
+    name: deploy frontend to Vercel
+    needs: frontend-checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: "10"
+          run_install: false
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Pull Vercel project info
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy to Vercel (prod)
+        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
