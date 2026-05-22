@@ -23,7 +23,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
 
-# Runtime: copy the venv and the source, run uvicorn directly.
+# Runtime: non-root user (UID 1000) so it works on Hugging Face Spaces
+# and any other host that drops privileges. libgomp1 is required by
+# ONNXRuntime under fastembed.
 FROM python:3.12-slim AS runtime
 
 ENV PATH=/app/.venv/bin:$PATH \
@@ -32,16 +34,21 @@ ENV PATH=/app/.venv/bin:$PATH \
     FASTEMBED_CACHE_DIR=/app/.fastembed_cache \
     HF_HOME=/app/.hf_cache
 
-# libgomp1 is required by ONNXRuntime (fastembed runs e5-large via ONNX).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -m -u 1000 user
 
 WORKDIR /app
 
-COPY --from=builder /app/.venv ./.venv
-COPY src ./src
-COPY run.py ./
+COPY --from=builder --chown=user:user /app/.venv ./.venv
+COPY --chown=user:user src ./src
+COPY --chown=user:user run.py ./
+
+RUN mkdir -p /app/.fastembed_cache /app/.hf_cache \
+    && chown -R user:user /app
+
+USER user
 
 EXPOSE 8000
 
