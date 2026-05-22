@@ -72,6 +72,7 @@ cd oer-hf-space
 # Copy the backend code into the Space repo. The HF Space's root must
 # contain the Dockerfile, pyproject.toml, src/, etc.
 rsync -av --delete \
+  --exclude='.git' \
   --exclude='__pycache__' \
   --exclude='.venv' \
   --exclude='.env' \
